@@ -1,29 +1,14 @@
 module ContinuedFractions
-	export ContinuedFraction, convergents
+	export ContinuedFraction, quotients, convergents
 
 	type ContinuedFraction
 		quotients::Vector{Int}
 	end
 
-	# TODO: Add quotients function
+	quotients(cf::ContinuedFraction) = cf.quotients
 
-	function approximate(quotients::Vector{Int})
-		s = 0.0
-
-		n_quotients = length(quotients)
-
-		for i in n_quotients:-1:2
-			s += quotients[i]
-			s = 1.0 / s
-		end
-
-		return quotients[1] + s
-	end
-
-	function convergents(cf::ContinuedFraction, t::Type)
-		n_quotients = length(cf.quotients)
-
-		a = cf.quotients
+	function convergents(a::Vector{Int}, t::Type)
+		n_quotients = length(a)
 
 		p = Array(Int, n_quotients - 1)
 		q = Array(Int, n_quotients - 1)
@@ -52,26 +37,31 @@ module ContinuedFractions
 
 		return c
 	end
-
-	convergents(cf::ContinuedFraction) = convergents(cf, Float64)
+	convergents(q::Vector{Int}) = convergents(q, Float64)
+	function convergents(cf::ContinuedFraction, t::Type)
+		convergents(cf.quotients, t)
+	end
+	function convergents(cf::ContinuedFraction)
+		convergents(cf.quotients, Float64)
+	end
 
 	function ContinuedFraction(x::Real)
-		tolerance = 10e-16
-		max_quotients = 500
+		tolerance, max_quotients = 10e-16, 500
 
 		input = x
-		quotients = Array(Int, max_quotients)
+		q = Array(Int, max_quotients)
 
-		i = 1
-		quotients[i] = ifloor(x)
-		x = 1 / (x - quotients[i])
+		i, converged = 0, false
 
-		while abs(approximate(quotients[1:i]) - input) > tolerance
+		while !converged
 			i += 1
-			quotients[i] = ifloor(x)
-			x = 1 / (x - quotients[i])
+			q[i] = ifloor(x)
+			x = 1 / (x - q[i])
+			if abs(convergents(q)[i] - input) < tolerance
+				converged = true
+			end
 		end
 
-		return ContinuedFraction(quotients[1:i])
+		return ContinuedFraction(q[1:i])
 	end
 end
