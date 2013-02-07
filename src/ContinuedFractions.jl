@@ -2,51 +2,76 @@ module ContinuedFractions
 	export ContinuedFraction, convergents
 
 	type ContinuedFraction
-		terms::Vector{Int}
+		quotients::Vector{Int}
 	end
 
-	function approximate(terms::Vector{Int})
+	# TODO: Add quotients function
+
+	function approximate(quotients::Vector{Int})
 		s = 0.0
 
-		n_terms = length(terms)
+		n_quotients = length(quotients)
 
-		for i in n_terms:-1:2
-			s += terms[i]
+		for i in n_quotients:-1:2
+			s += quotients[i]
 			s = 1.0 / s
 		end
 
-		return terms[1] + s
+		return quotients[1] + s
 	end
 
-	function convergents(cf::ContinuedFraction)
-		n_terms = length(cf.terms)
+	function convergents(cf::ContinuedFraction, t::Type)
+		n_quotients = length(cf.quotients)
 
-		res = Array(Float64, n_terms)
+		a = cf.quotients
 
-		for i in 1:n_terms
-			res[i] = approximate(cf.terms[1:i])
+		p = Array(Int, n_quotients - 1)
+		q = Array(Int, n_quotients - 1)
+		c = Array(t, n_quotients)
+
+		p0, q0 = a[1], 1
+		p[1], q[1] = a[2] * a[1] + 1, a[2]
+		p[2], q[2] = a[3] * p[1] + p0, a[3] * q[1] + q0
+
+		for k in 3:(n_quotients - 1)
+			p[k] = a[k + 1] * p[k - 1] + p[k - 2]
+			q[k] = a[k + 1] * q[k - 1] + q[k - 2]
 		end
 
-		return res
+		if t <: Rational
+			c[1] = Rational(a[1], 1)
+			for k in 2:n_quotients
+				c[k] = Rational(p[k - 1], q[k - 1])
+			end
+		else
+			c[1] = a[1] / 1
+			for k in 2:n_quotients
+				c[k] = p[k - 1] / q[k - 1]
+			end
+		end
+
+		return c
 	end
+
+	convergents(cf::ContinuedFraction) = convergents(cf, Float64)
 
 	function ContinuedFraction(x::Real)
 		tolerance = 10e-16
-		max_terms = 50
+		max_quotients = 500
 
 		input = x
-		terms = Array(Int, max_terms)
+		quotients = Array(Int, max_quotients)
 
 		i = 1
-		terms[i] = ifloor(x)
-		x = 1 / (x - terms[i])
+		quotients[i] = ifloor(x)
+		x = 1 / (x - quotients[i])
 
-		while abs(approximate(terms[1:i]) - input) > tolerance
+		while abs(approximate(quotients[1:i]) - input) > tolerance
 			i += 1
-			terms[i] = ifloor(x)
-			x = 1 / (x - terms[i])
+			quotients[i] = ifloor(x)
+			x = 1 / (x - quotients[i])
 		end
 
-		return ContinuedFraction(terms[1:i])
+		return ContinuedFraction(quotients[1:i])
 	end
 end
