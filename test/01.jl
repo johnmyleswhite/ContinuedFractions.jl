@@ -18,7 +18,7 @@ for i in 2:15
 end
 @assert abs(convergents(cf)[end] - sqrt(3)) < 10e-16
 
-cf = ContinuedFraction(e)
+cf = ContinuedFraction(1e)
 @assert quotients(cf)[1] == 2
 for i in 2:15
 	if mod(i, 3) == 0
