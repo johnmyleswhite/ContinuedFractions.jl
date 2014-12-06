@@ -1,6 +1,10 @@
 ContinuedFractions.jl
 =====================
 
+# NOTICE
+
+**This package is unmaintained. Its reliability is not guaranteed.**
+
 # Usage
 
     using ContinuedFractions
