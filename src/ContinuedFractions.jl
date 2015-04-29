@@ -1,67 +1,57 @@
 module ContinuedFractions
-	export ContinuedFraction, quotients, convergents
 
-	type ContinuedFraction
-		quotients::Vector{Int}
-	end
+import Base: start, done, next, length, eltype, collect
 
-	quotients(cf::ContinuedFraction) = cf.quotients
+export ContinuedFraction, quotients, convergents, ConvergentIterator
 
-	function convergents(a::Vector{Int}, t::Type)
-		n_quotients = length(a)
-
-		p = Array(Int, n_quotients - 1)
-		q = Array(Int, n_quotients - 1)
-		c = Array(t, n_quotients)
-
-		p0, q0 = a[1], 1
-		p[1], q[1] = a[2] * a[1] + 1, a[2]
-		p[2], q[2] = a[3] * p[1] + p0, a[3] * q[1] + q0
-
-		for k in 3:(n_quotients - 1)
-			p[k] = a[k + 1] * p[k - 1] + p[k - 2]
-			q[k] = a[k + 1] * q[k - 1] + q[k - 2]
-		end
-
-		if t <: Rational
-			c[1] = Rational(a[1], 1)
-			for k in 2:n_quotients
-				c[k] = Rational(p[k - 1], q[k - 1])
-			end
-		else
-			c[1] = a[1] / 1
-			for k in 2:n_quotients
-				c[k] = p[k - 1] / q[k - 1]
-			end
-		end
-
-		return c
-	end
-	convergents(q::Vector{Int}) = convergents(q, Float64)
-	function convergents(cf::ContinuedFraction, t::Type)
-		convergents(cf.quotients, t)
-	end
-	function convergents(cf::ContinuedFraction)
-		convergents(cf.quotients, Float64)
-	end
-
-	function ContinuedFraction(x::Real)
-		tolerance, max_quotients = 10e-16, 500
-
-		input = x
-		q = Array(Int, max_quotients)
-
-		i, converged = 0, false
-
-		while !converged
-			i += 1
-			q[i] = ifloor(x)
-			x = 1 / (x - q[i])
-			if abs(convergents(q)[i] - input) < tolerance
-				converged = true
-			end
-		end
-
-		return ContinuedFraction(q[1:i])
-	end
+immutable ContinuedFraction{T<:Integer}
+	quotients::Vector{T}
 end
+
+quotients(cf::ContinuedFraction) = cf.quotients
+
+immutable ConvergentIterator{T<:Integer}
+    qs::Vector{T}
+end
+
+start(::ConvergentIterator) = 1
+done(it::ConvergentIterator, state::Int) = state > length(it.qs)
+length(it::ConvergentIterator) = length(it.qs)
+
+function next(it::ConvergentIterator, state::Int)
+    convergent = Rational(ContinuedFraction(it.qs[1:state]))
+    convergent, state + 1
+end
+
+eltype(it::ConvergentIterator) = Rational{eltype(it.qs)}
+collect(it::ConvergentIterator) = collect(eltype(it), it)
+
+convergents(cf::ContinuedFraction) = convergents(quotients(cf))
+convergents{T<:Integer}(qs::Vector{T}) = ConvergentIterator(qs)
+
+function Base.Rational(cf::ContinuedFraction)
+    qs = quotients(cf)
+    isempty(qs) && return 0 // 1
+    length(qs) == 1 && return qs[1] // 1
+
+    remainder = qs[2:end]
+    rat = Rational(ContinuedFraction(remainder))
+    (qs[1] * rat.num + rat.den) // rat.num
+end
+
+function ContinuedFraction{T<:Integer}(rat::Rational{T})
+    a = div(rat.num, rat.den)
+    a * rat.den == rat.num && return ContinuedFraction(T[a])  # Exact!
+
+    cf = ContinuedFraction(rat.den//(rat.num - a*rat.den))
+    unshift!(quotients(cf), a) # insert at index 1
+    cf
+end
+
+# let rationalize handle conversion from floating point
+ContinuedFraction(x::BigFloat) = ContinuedFraction(rationalize(BigInt, x))
+ContinuedFraction(x::FloatingPoint) = ContinuedFraction(rationalize(x))
+
+ContinuedFraction(x::Integer) = ContinuedFraction([x])
+
+end # module ContinuedFractions
