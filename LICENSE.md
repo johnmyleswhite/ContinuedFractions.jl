@@ -1,6 +1,6 @@
 ContinuedFractions.jl is licensed under the MIT License:
 
-> Copyright (c) 2013: John Myles White and other contributors.
+> Copyright (c) 2013: John Myles White, Simon Byrne and other contributors.
 >
 > Permission is hereby granted, free of charge, to any person obtaining
 > a copy of this software and associated documentation files (the
