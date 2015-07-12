@@ -3,7 +3,7 @@ type IrrationalContinuedFraction{T<:Integer, C} <: ContinuedFraction{T}
     quotients::Vector{T}
 end
 
-eps_error(c::MathConst) = 2<<20 # assume accurate to within 20 bits?
+eps_error(c::MathConst) = 1<<20 # assume accurate to within 20 bits?
 
 function compute!{T,C}(cf::IrrationalContinuedFraction{T,C}, prec::Int)
     with_bigfloat_precision(prec) do
