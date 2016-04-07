@@ -5,10 +5,10 @@ ContinuedFractions.jl
 ```julia
 julia> using ContinuedFractions
 
-julia> cf = ContinuedFraction(sqrt(2))
+julia> cf = ContinuedFraction(sqrt(big(2)))
 ContinuedFraction{Int64}([1,2,2,2,2,2,2,2,2,2  …  2,2,2,2,2,2,2,2,2,3])
 
-julia> convergents(cf)
+julia> collect(convergents(cf))
 22-element Array{Rational{Int64},1}:
         0//1
         1//1
