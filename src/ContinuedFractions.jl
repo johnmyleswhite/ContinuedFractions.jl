@@ -50,7 +50,7 @@ end
 
 # let rationalize handle conversion from floating point
 ContinuedFraction(x::BigFloat) = ContinuedFraction(rationalize(BigInt, x))
-ContinuedFraction(x::FloatingPoint) = ContinuedFraction(rationalize(x))
+ContinuedFraction(x::AbstractFloat) = ContinuedFraction(rationalize(x))
 
 ContinuedFraction(x::Integer) = ContinuedFraction([x])
 
