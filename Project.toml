@@ -1,0 +1,6 @@
+name = "ContinuedFractions"
+uuid = "900c1893-6c27-45fc-afb6-16d84d79c500"
+version = "0.1"
+
+[compat]
+julia = "≥ 0.7"
