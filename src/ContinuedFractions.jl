@@ -37,6 +37,7 @@ collect(it::ConvergentIterator{T})    where {T} = collect(Rational{T}, it)
 
 convergents(cf::ContinuedFraction) = convergents(quotients(cf))
 convergents(qs::Vector{<:Integer}) = ConvergentIterator(qs)
+convergents(x::Real) = convergents(ContinuedFraction(x))
 
 function Base.Rational(cf::ContinuedFraction)
     qs = quotients(cf)
